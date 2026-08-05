@@ -1,5 +1,7 @@
 package com.gometro.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.gometro.enums.TrainStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,9 +22,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,8 +30,6 @@ import java.util.List;
 
 @Entity
 @Table(name = "trains")
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -67,12 +65,15 @@ public class Train {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "route_id")
+    @JsonIgnoreProperties({"trains", "routeStations", "schedules"})
     private Route route;
 
+    @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "train", fetch = FetchType.LAZY)
     private List<Schedule> schedules = new ArrayList<>();
 
+    @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "train", fetch = FetchType.LAZY)
     private List<MaintenanceIssue> maintenanceIssues = new ArrayList<>();
@@ -87,4 +88,25 @@ public class Train {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getTrainNumber() { return trainNumber; }
+    public void setTrainNumber(String trainNumber) { this.trainNumber = trainNumber; }
+    public String getTrainName() { return trainName; }
+    public void setTrainName(String trainName) { this.trainName = trainName; }
+    public Integer getCapacity() { return capacity; }
+    public void setCapacity(Integer capacity) { this.capacity = capacity; }
+    public TrainStatus getStatus() { return status; }
+    public void setStatus(TrainStatus status) { this.status = status; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public Route getRoute() { return route; }
+    public void setRoute(Route route) { this.route = route; }
+    public List<Schedule> getSchedules() { return schedules; }
+    public void setSchedules(List<Schedule> schedules) { this.schedules = schedules; }
+    public List<MaintenanceIssue> getMaintenanceIssues() { return maintenanceIssues; }
+    public void setMaintenanceIssues(List<MaintenanceIssue> maintenanceIssues) { this.maintenanceIssues = maintenanceIssues; }
 }

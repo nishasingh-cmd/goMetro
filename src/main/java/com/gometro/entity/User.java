@@ -1,5 +1,7 @@
 package com.gometro.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gometro.enums.UserRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,9 +20,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -28,8 +28,6 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -46,6 +44,7 @@ public class User {
 
     @NotBlank
     @Column(nullable = false)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @NotBlank
@@ -74,14 +73,17 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<MetroCard> metroCards = new ArrayList<>();
 
+    @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Ticket> tickets = new ArrayList<>();
 
+    @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "reportedBy", fetch = FetchType.LAZY)
     private List<MaintenanceIssue> reportedIssues = new ArrayList<>();
@@ -96,4 +98,31 @@ public class User {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public UserRole getRole() { return role; }
+    public void setRole(UserRole role) { this.role = role; }
+    public Boolean getActive() { return active; }
+    public void setActive(Boolean active) { this.active = active; }
+    public LocalDateTime getRegistrationDate() { return registrationDate; }
+    public void setRegistrationDate(LocalDateTime registrationDate) { this.registrationDate = registrationDate; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public List<MetroCard> getMetroCards() { return metroCards; }
+    public void setMetroCards(List<MetroCard> metroCards) { this.metroCards = metroCards; }
+    public List<Ticket> getTickets() { return tickets; }
+    public void setTickets(List<Ticket> tickets) { this.tickets = tickets; }
+    public List<MaintenanceIssue> getReportedIssues() { return reportedIssues; }
+    public void setReportedIssues(List<MaintenanceIssue> reportedIssues) { this.reportedIssues = reportedIssues; }
 }

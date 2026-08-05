@@ -1,5 +1,6 @@
 package com.gometro.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -14,16 +15,12 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "schedules")
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -50,21 +47,25 @@ public class Schedule {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "train_id", nullable = false)
+    @JsonIgnoreProperties({"schedules", "maintenanceIssues"})
     private Train train;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "route_id", nullable = false)
+    @JsonIgnoreProperties({"schedules", "trains", "routeStations"})
     private Route route;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_station_id", nullable = false)
+    @JsonIgnoreProperties({"departureSchedules", "arrivalSchedules", "routeStations", "originFares", "destinationFares", "sourceTickets", "destinationTickets"})
     private Station sourceStation;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "destination_station_id", nullable = false)
+    @JsonIgnoreProperties({"departureSchedules", "arrivalSchedules", "routeStations", "originFares", "destinationFares", "sourceTickets", "destinationTickets"})
     private Station destinationStation;
 
     @PrePersist
@@ -77,4 +78,23 @@ public class Schedule {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public LocalDateTime getDepartureTime() { return departureTime; }
+    public void setDepartureTime(LocalDateTime departureTime) { this.departureTime = departureTime; }
+    public LocalDateTime getArrivalTime() { return arrivalTime; }
+    public void setArrivalTime(LocalDateTime arrivalTime) { this.arrivalTime = arrivalTime; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public Train getTrain() { return train; }
+    public void setTrain(Train train) { this.train = train; }
+    public Route getRoute() { return route; }
+    public void setRoute(Route route) { this.route = route; }
+    public Station getSourceStation() { return sourceStation; }
+    public void setSourceStation(Station sourceStation) { this.sourceStation = sourceStation; }
+    public Station getDestinationStation() { return destinationStation; }
+    public void setDestinationStation(Station destinationStation) { this.destinationStation = destinationStation; }
 }

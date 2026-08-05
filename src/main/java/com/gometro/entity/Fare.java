@@ -1,5 +1,6 @@
 package com.gometro.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -16,9 +17,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,8 +29,6 @@ import java.time.LocalDateTime;
         @UniqueConstraint(columnNames = {"source_station_id", "destination_station_id"})
     }
 )
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -55,11 +52,13 @@ public class Fare {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_station_id", nullable = false)
+    @JsonIgnoreProperties({"originFares", "destinationFares", "departureSchedules", "arrivalSchedules", "routeStations", "sourceTickets", "destinationTickets"})
     private Station sourceStation;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "destination_station_id", nullable = false)
+    @JsonIgnoreProperties({"originFares", "destinationFares", "departureSchedules", "arrivalSchedules", "routeStations", "sourceTickets", "destinationTickets"})
     private Station destinationStation;
 
     @PrePersist
@@ -72,4 +71,17 @@ public class Fare {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public Station getSourceStation() { return sourceStation; }
+    public void setSourceStation(Station sourceStation) { this.sourceStation = sourceStation; }
+    public Station getDestinationStation() { return destinationStation; }
+    public void setDestinationStation(Station destinationStation) { this.destinationStation = destinationStation; }
 }

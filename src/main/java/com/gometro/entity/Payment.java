@@ -1,5 +1,6 @@
 package com.gometro.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.gometro.enums.PaymentMethod;
 import com.gometro.enums.PaymentStatus;
 import jakarta.persistence.Column;
@@ -20,17 +21,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "payments")
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -64,19 +61,41 @@ public class Payment {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ticket_id")
+    @JsonIgnoreProperties({"payment"})
     private Ticket ticket;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "metro_card_id")
+    @JsonIgnoreProperties({"payments", "tickets"})
     private MetroCard metroCard;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"metroCards", "tickets", "reportedIssues"})
     private User user;
 
     @PrePersist
     protected void onCreate() {
         this.paymentTime = LocalDateTime.now();
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getTransactionId() { return transactionId; }
+    public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
+    public PaymentMethod getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(PaymentMethod paymentMethod) { this.paymentMethod = paymentMethod; }
+    public PaymentStatus getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(PaymentStatus paymentStatus) { this.paymentStatus = paymentStatus; }
+    public LocalDateTime getPaymentTime() { return paymentTime; }
+    public void setPaymentTime(LocalDateTime paymentTime) { this.paymentTime = paymentTime; }
+    public Ticket getTicket() { return ticket; }
+    public void setTicket(Ticket ticket) { this.ticket = ticket; }
+    public MetroCard getMetroCard() { return metroCard; }
+    public void setMetroCard(MetroCard metroCard) { this.metroCard = metroCard; }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 }

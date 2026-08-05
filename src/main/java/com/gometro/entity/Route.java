@@ -1,5 +1,6 @@
 package com.gometro.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,9 +17,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -27,8 +26,6 @@ import java.util.List;
 
 @Entity
 @Table(name = "routes")
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -61,14 +58,17 @@ public class Route {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<RouteStation> routeStations = new ArrayList<>();
 
+    @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "route", fetch = FetchType.LAZY)
     private List<Train> trains = new ArrayList<>();
 
+    @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "route", fetch = FetchType.LAZY)
     private List<Schedule> schedules = new ArrayList<>();
@@ -83,4 +83,25 @@ public class Route {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getRouteCode() { return routeCode; }
+    public void setRouteCode(String routeCode) { this.routeCode = routeCode; }
+    public String getRouteName() { return routeName; }
+    public void setRouteName(String routeName) { this.routeName = routeName; }
+    public BigDecimal getTotalDistanceKm() { return totalDistanceKm; }
+    public void setTotalDistanceKm(BigDecimal totalDistanceKm) { this.totalDistanceKm = totalDistanceKm; }
+    public Boolean getActive() { return active; }
+    public void setActive(Boolean active) { this.active = active; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public List<RouteStation> getRouteStations() { return routeStations; }
+    public void setRouteStations(List<RouteStation> routeStations) { this.routeStations = routeStations; }
+    public List<Train> getTrains() { return trains; }
+    public void setTrains(List<Train> trains) { this.trains = trains; }
+    public List<Schedule> getSchedules() { return schedules; }
+    public void setSchedules(List<Schedule> schedules) { this.schedules = schedules; }
 }
