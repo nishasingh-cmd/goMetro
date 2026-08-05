@@ -1,0 +1,49 @@
+# Target & Build Output
+target/
+*.jar
+*.war
+*.ear
+*.rar
+
+# Logs
+logs/
+*.log
+logback*.xml
+
+# Environment & Secrets
+.env
+.env.local
+.env.development
+.env.production
+*.pem
+*.key
+
+# IDE - IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# IDE - Eclipse
+.settings/
+.classpath
+.project
+.factorypath
+
+# IDE - VS Code
+.vscode/
+
+# Maven Wrapper binaries (optional)
+!.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
+
+# OS Generated Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
