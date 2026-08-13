@@ -1,5 +1,6 @@
 package com.gometro.controller;
 
+import com.gometro.dto.TicketResponseDTO;
 import com.gometro.entity.Ticket;
 import com.gometro.response.ApiResponse;
 import com.gometro.service.TicketService;
@@ -28,27 +29,29 @@ public class TicketController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Ticket>> createTicket(@Valid @RequestBody Ticket ticket) {
+    public ResponseEntity<ApiResponse<TicketResponseDTO>> createTicket(@Valid @RequestBody Ticket ticket) {
         Ticket created = ticketService.create(ticket);
-        return new ResponseEntity<>(ApiResponse.success("Ticket created successfully", created, HttpStatus.CREATED.value()), HttpStatus.CREATED);
+        TicketResponseDTO response = ticketService.getTicketResponseById(created.getId());
+        return new ResponseEntity<>(ApiResponse.success("Ticket created successfully", response, HttpStatus.CREATED.value()), HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Ticket>>> getAllTickets() {
-        List<Ticket> tickets = ticketService.getAll();
+    public ResponseEntity<ApiResponse<List<TicketResponseDTO>>> getAllTickets() {
+        List<TicketResponseDTO> tickets = ticketService.getAllTicketResponses();
         return ResponseEntity.ok(ApiResponse.success("Tickets retrieved successfully", tickets));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<Ticket>> getTicketById(@PathVariable Long id) {
-        Ticket ticket = ticketService.getById(id);
+    public ResponseEntity<ApiResponse<TicketResponseDTO>> getTicketById(@PathVariable Long id) {
+        TicketResponseDTO ticket = ticketService.getTicketResponseById(id);
         return ResponseEntity.ok(ApiResponse.success("Ticket retrieved successfully", ticket));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Ticket>> updateTicket(@PathVariable Long id, @RequestBody Ticket ticket) {
+    public ResponseEntity<ApiResponse<TicketResponseDTO>> updateTicket(@PathVariable Long id, @RequestBody Ticket ticket) {
         Ticket updated = ticketService.update(id, ticket);
-        return ResponseEntity.ok(ApiResponse.success("Ticket updated successfully", updated));
+        TicketResponseDTO response = ticketService.getTicketResponseById(updated.getId());
+        return ResponseEntity.ok(ApiResponse.success("Ticket updated successfully", response));
     }
 
     @DeleteMapping("/{id}")

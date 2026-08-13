@@ -94,10 +94,7 @@ public class User {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Ticket> tickets = new ArrayList<>();
 
-    /*
-     * USER -> MAINTENANCE ISSUES
-     * One User can report many MaintenanceIssues.
-     */
+   
     @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "reportedBy", fetch = FetchType.LAZY)
@@ -114,9 +111,6 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // =========================
-    // GETTERS AND SETTERS
-    // =========================
 
     public Long getId() {
         return id;

@@ -273,13 +273,16 @@ public class DemoDataSeeder implements CommandLineRunner {
         // 9. Tickets
         Ticket ticket1 = createTicket("TCK-2026-001", "QR-DATA-VERS-GHAT-001", new BigDecimal("40.00"), TicketStatus.USED, aarav, card1, versova, ghatkopar);
         Ticket ticket2 = createTicket("TCK-2026-002", "QR-DATA-ANDH-GHAT-002", new BigDecimal("30.00"), TicketStatus.BOOKED, priya, card2, andheri, ghatkopar);
+        Ticket ticket3 = createTicket("TCK-2026-003", "QR-DATA-VERS-ANDH-003", new BigDecimal("20.00"), TicketStatus.BOOKED, rohan, card3, versova, andheri);
 
         // 10. Payments
         createPayment("TXN998877661", new BigDecimal("40.00"), PaymentMethod.METRO_CARD, PaymentStatus.COMPLETED, ticket1, card1, aarav);
         createPayment("TXN998877662", new BigDecimal("30.00"), PaymentMethod.UPI, PaymentStatus.COMPLETED, ticket2, card2, priya);
+        createPayment("TXN998877663", new BigDecimal("20.00"), PaymentMethod.METRO_CARD, PaymentStatus.COMPLETED, ticket3, card3, rohan);
 
         // 11. Maintenance Issues
         createIssue("Escalator #2 Malfunction", "Escalator at Platform 1 requires motor check.", MaintenanceType.STATION_FACILITY, MaintenancePriority.MEDIUM, MaintenanceStatus.OPEN, andheri, null, aditya);
         createIssue("Door Sensor Fault on Rake Epsilon", "Door #4 sensor fails auto-close.", MaintenanceType.TRAIN_MECHANICAL, MaintenancePriority.HIGH, MaintenanceStatus.IN_PROGRESS, null, train5, aditya);
+        createIssue("Ticket Vending Machine Offline", "TVM #3 screen frozen at Versova station.", MaintenanceType.STATION_FACILITY, MaintenancePriority.LOW, MaintenanceStatus.OPEN, versova, null, aarav);
     }
 }

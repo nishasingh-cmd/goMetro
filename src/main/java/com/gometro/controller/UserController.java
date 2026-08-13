@@ -1,6 +1,9 @@
 package com.gometro.controller;
 
+import com.gometro.dto.UserRequestDTO;
+import com.gometro.dto.UserResponseDTO;
 import com.gometro.entity.User;
+import com.gometro.mapper.DtoMapper;
 import com.gometro.response.ApiResponse;
 import com.gometro.service.UserService;
 import jakarta.validation.Valid;
@@ -28,27 +31,31 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<User>> createUser(@Valid @RequestBody User user) {
+    public ResponseEntity<ApiResponse<UserResponseDTO>> createUser(@Valid @RequestBody UserRequestDTO request) {
+        User user = DtoMapper.toUserEntity(request);
         User createdUser = userService.create(user);
-        return new ResponseEntity<>(ApiResponse.success("User created successfully", createdUser, HttpStatus.CREATED.value()), HttpStatus.CREATED);
+        UserResponseDTO response = userService.getResponseById(createdUser.getId());
+        return new ResponseEntity<>(ApiResponse.success("User created successfully", response, HttpStatus.CREATED.value()), HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
-        List<User> users = userService.getAll();
+    public ResponseEntity<ApiResponse<List<UserResponseDTO>>> getAllUsers() {
+        List<UserResponseDTO> users = userService.getAllResponses();
         return ResponseEntity.ok(ApiResponse.success("Users retrieved successfully", users));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<User>> getUserById(@PathVariable Long id) {
-        User user = userService.getById(id);
+    public ResponseEntity<ApiResponse<UserResponseDTO>> getUserById(@PathVariable Long id) {
+        UserResponseDTO user = userService.getResponseById(id);
         return ResponseEntity.ok(ApiResponse.success("User retrieved successfully", user));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<User>> updateUser(@PathVariable Long id, @RequestBody User user) {
+    public ResponseEntity<ApiResponse<UserResponseDTO>> updateUser(@PathVariable Long id, @RequestBody UserRequestDTO request) {
+        User user = DtoMapper.toUserEntity(request);
         User updatedUser = userService.update(id, user);
-        return ResponseEntity.ok(ApiResponse.success("User updated successfully", updatedUser));
+        UserResponseDTO response = userService.getResponseById(updatedUser.getId());
+        return ResponseEntity.ok(ApiResponse.success("User updated successfully", response));
     }
 
     @DeleteMapping("/{id}")
