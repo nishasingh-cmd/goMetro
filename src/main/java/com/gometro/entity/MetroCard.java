@@ -35,6 +35,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class MetroCard {
 
     @Id
@@ -65,9 +66,9 @@ public class MetroCard {
     private LocalDateTime updatedAt;
 
     @NotNull
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
-    @JsonIgnoreProperties({"metroCard", "tickets", "reportedIssues"})
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "metroCard", "tickets", "reportedIssues"})
     private User user;
 
     @JsonIgnore
