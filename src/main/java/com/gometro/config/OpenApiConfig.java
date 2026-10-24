@@ -14,7 +14,7 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("GoMetro API")
-                        .description("Metro Ticket Booking System Backend APIs")
+                        .description("User Management APIs")
                         .version("v1.0")
                         .contact(new Contact().name("GoMetro Engineering Team")));
     }

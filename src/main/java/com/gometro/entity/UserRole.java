@@ -1,4 +1,4 @@
-package com.gometro.enums;
+package com.gometro.entity;
 
 public enum UserRole {
     ROLE_PASSENGER,

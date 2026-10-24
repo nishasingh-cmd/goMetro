@@ -1,32 +1,24 @@
 package com.gometro.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.gometro.enums.UserRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -37,34 +29,35 @@ import java.util.List;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator = "custom-id")
+    @org.hibernate.annotations.GenericGenerator(name = "custom-id", type = CustomIdGenerator.class)
     private Long id;
 
-    @NotBlank
-    @Email
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
     @Column(unique = true, nullable = false)
     private String email;
 
-    @NotBlank
+    @NotBlank(message = "Password is required")
     @Column(nullable = false)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @NotBlank
+    @NotBlank(message = "First name is required")
     @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    @NotBlank
+    @NotBlank(message = "Last name is required")
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
     @Column(name = "phone_number", unique = true)
     private String phoneNumber;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserRole role;
+    @Builder.Default
+    private UserRole role = UserRole.ROLE_PASSENGER;
 
     @Builder.Default
     @Column(nullable = false)
@@ -76,43 +69,24 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    /*
-     * USER -> METRO CARD
-     * One User has exactly one MetroCard.
-     *
-     * This is the inverse side of the relationship.
-     * The actual foreign key is maintained by MetroCard.user.
-     */
-    @JsonIgnore
-    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
-    private MetroCard metroCard;
-
-    /*
-     * USER -> TICKETS
-     * One User can have many Tickets.
-     */
-    @JsonIgnore
-    @Builder.Default
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<Ticket> tickets = new ArrayList<>();
-
-   
-    @JsonIgnore
-    @Builder.Default
-    @OneToMany(mappedBy = "reportedBy", fetch = FetchType.LAZY)
-    private List<MaintenanceIssue> reportedIssues = new ArrayList<>();
-
     @PrePersist
     protected void onCreate() {
-        this.registrationDate = LocalDateTime.now();
+        if (this.registrationDate == null) {
+            this.registrationDate = LocalDateTime.now();
+        }
         this.updatedAt = LocalDateTime.now();
+        if (this.active == null) {
+            this.active = true;
+        }
+        if (this.role == null) {
+            this.role = UserRole.ROLE_PASSENGER;
+        }
     }
 
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
-
 
     public Long getId() {
         return id;
@@ -192,29 +166,5 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public MetroCard getMetroCard() {
-        return metroCard;
-    }
-
-    public void setMetroCard(MetroCard metroCard) {
-        this.metroCard = metroCard;
-    }
-
-    public List<Ticket> getTickets() {
-        return tickets;
-    }
-
-    public void setTickets(List<Ticket> tickets) {
-        this.tickets = tickets;
-    }
-
-    public List<MaintenanceIssue> getReportedIssues() {
-        return reportedIssues;
-    }
-
-    public void setReportedIssues(List<MaintenanceIssue> reportedIssues) {
-        this.reportedIssues = reportedIssues;
     }
 }
