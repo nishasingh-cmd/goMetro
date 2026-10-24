@@ -122,16 +122,3 @@ Once started, open your browser and navigate to:
 - **OpenAPI JSON Docs**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 
 ---
-
-## 🗺️ Roadmap & Development Phases
-
-- [x] **Phase 0**: Project Initialization & Environment Setup (GoMetro foundation)
-- [ ] **Phase 1**: Core Entities & Database Schema Mapping
-- [ ] **Phase 2**: Station & Route Management APIs
-- [ ] **Phase 3**: Train & Schedule Operations
-- [ ] **Phase 4**: User Management & Security (JWT Authentication & Authorization)
-- [ ] **Phase 5**: Metro Card & Balance Recharge System
-- [ ] **Phase 6**: Route Search & Fare Calculation Engine
-- [ ] **Phase 7**: Ticket Booking & QR Code Generation
-- [ ] **Phase 8**: Maintenance & Issue Tracking System
-- [ ] **Phase 9**: Admin Dashboard Analytics & System Monitoring
