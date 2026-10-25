@@ -1,83 +1,374 @@
 package com.gometro;
 
+import com.gometro.entity.Role;
 import com.gometro.entity.User;
-import com.gometro.entity.UserRole;
 import com.gometro.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 class GoMetroApplicationTests {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private MockMvc mockMvc;
 
     @Test
     void contextLoads() {
     }
 
     @Test
-    void testCreateUserWithCustomIdAndRetrieve() {
+    void testCreateUserPassengerGeneratesPassIdAndRetrieve() {
         User user = new User();
-        user.setId(111L);
-        user.setEmail("custom111@example.com");
         user.setPassword("Password@123");
-        user.setFirstName("Custom");
+        user.setFirstName("Passenger");
         user.setLastName("User");
-        user.setPhoneNumber("+919111111111");
-        user.setRole(UserRole.ROLE_PASSENGER);
+        user.setContact("+919111111111");
+        user.setRole(Role.PASSENGER);
 
         User created = userService.create(user);
         assertNotNull(created);
-        assertEquals(111L, created.getId());
+        assertNotNull(created.getUserId());
+        assertTrue(created.getUserId().matches("^PASS-[0-9a-fA-F-]{36}$"));
 
-        User fetched = userService.getById(111L);
+        User fetched = userService.getById(created.getUserId());
         assertNotNull(fetched);
-        assertEquals(111L, fetched.getId());
-        assertEquals("custom111@example.com", fetched.getEmail());
+        assertEquals(created.getUserId(), fetched.getUserId());
+        assertEquals("+919111111111", fetched.getContact());
     }
 
     @Test
-    void testCreateUserWithDuplicateIdThrowsException() {
-        User user1 = new User();
-        user1.setId(222L);
-        user1.setEmail("first222@example.com");
-        user1.setPassword("Password@123");
-        user1.setFirstName("First");
-        user1.setLastName("User");
-        user1.setPhoneNumber("+919222222221");
-        user1.setRole(UserRole.ROLE_PASSENGER);
-        userService.create(user1);
-
-        User user2 = new User();
-        user2.setId(222L);
-        user2.setEmail("second222@example.com");
-        user2.setPassword("Password@123");
-        user2.setFirstName("Second");
-        user2.setLastName("User");
-        user2.setPhoneNumber("+919222222222");
-        user2.setRole(UserRole.ROLE_PASSENGER);
-
-        assertThrows(IllegalArgumentException.class, () -> userService.create(user2));
-    }
-
-    @Test
-    void testCreateUserWithoutIdGeneratesId() {
+    void testCreateUserWithoutRoleThrowsException() {
         User user = new User();
-        user.setEmail("autogen@example.com");
         user.setPassword("Password@123");
-        user.setFirstName("Auto");
-        user.setLastName("Gen");
-        user.setPhoneNumber("+919333333333");
-        user.setRole(UserRole.ROLE_PASSENGER);
+        user.setFirstName("NoRole");
+        user.setLastName("User");
+        user.setContact("+919222222221");
+
+        assertThrows(IllegalArgumentException.class, () -> userService.create(user));
+    }
+
+    @Test
+    void testCreateUserIgnoresSuppliedIdInService() {
+        User user = new User();
+        user.setUserId("CLIENT-PASS-999");
+        user.setPassword("Password@123");
+        user.setFirstName("Ignore");
+        user.setLastName("Id");
+        user.setContact("+919333333333");
+        user.setRole(Role.PASSENGER);
 
         User created = userService.create(user);
         assertNotNull(created);
-        assertNotNull(created.getId());
+        assertNotNull(created.getUserId());
+        assertTrue(created.getUserId().matches("^PASS-[0-9a-fA-F-]{36}$"));
+        assertFalse("CLIENT-PASS-999".equals(created.getUserId()));
+    }
+
+    @Test
+    void testGetUsersUnauthorizedWithoutCredentials() throws Exception {
+        mockMvc.perform(get("/api/users"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testGetUsersAuthorizedWithAdminCredentials() throws Exception {
+        mockMvc.perform(get("/api/users").with(httpBasic("admin", "admin123")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testSwaggerDocumentationPermitAll() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testCreateUserPassengerGeneratesPassPrefixViaApi() throws Exception {
+        String jsonPayload = """
+                {
+                  "firstName": "Passenger",
+                  "lastName": "One",
+                  "password": "Password@123",
+                  "role": "PASSENGER",
+                  "contact": "+919876540001"
+                }
+                """;
+
+        mockMvc.perform(post("/api/users")
+                        .with(httpBasic("admin", "admin123"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonPayload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.userId").value(matchesPattern("^PASS-[0-9a-fA-F-]{36}$")))
+                .andExpect(jsonPath("$.role").value("PASSENGER"))
+                .andExpect(jsonPath("$.contact").value("+919876540001"))
+                .andExpect(jsonPath("$.isActive").value(true))
+                .andExpect(jsonPath("$.password").doesNotExist())
+                .andExpect(jsonPath("$.id").doesNotExist())
+                .andExpect(jsonPath("$.active").doesNotExist());
+    }
+
+    @Test
+    void testCreateUserAdminGeneratesAdminPrefixViaApi() throws Exception {
+        String jsonPayload = """
+                {
+                  "firstName": "Admin",
+                  "lastName": "One",
+                  "password": "Password@123",
+                  "role": "ADMIN",
+                  "contact": "+919876540002"
+                }
+                """;
+
+        mockMvc.perform(post("/api/users")
+                        .with(httpBasic("admin", "admin123"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonPayload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.userId").value(matchesPattern("^ADMIN-[0-9a-fA-F-]{36}$")))
+                .andExpect(jsonPath("$.role").value("ADMIN"))
+                .andExpect(jsonPath("$.contact").value("+919876540002"))
+                .andExpect(jsonPath("$.password").doesNotExist())
+                .andExpect(jsonPath("$.id").doesNotExist())
+                .andExpect(jsonPath("$.active").doesNotExist());
+    }
+
+    @Test
+    void testCreateUserTicketAgentGeneratesEmpPrefixViaApi() throws Exception {
+        String jsonPayload = """
+                {
+                  "firstName": "Ticket",
+                  "lastName": "Agent",
+                  "password": "Password@123",
+                  "role": "TICKET_AGENT",
+                  "contact": "+919876540003"
+                }
+                """;
+
+        mockMvc.perform(post("/api/users")
+                        .with(httpBasic("admin", "admin123"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonPayload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.userId").value(matchesPattern("^EMP-[0-9a-fA-F-]{36}$")))
+                .andExpect(jsonPath("$.role").value("TICKET_AGENT"))
+                .andExpect(jsonPath("$.contact").value("+919876540003"))
+                .andExpect(jsonPath("$.password").doesNotExist())
+                .andExpect(jsonPath("$.id").doesNotExist())
+                .andExpect(jsonPath("$.active").doesNotExist());
+    }
+
+    @Test
+    void testCreateUserMaintenanceStaffGeneratesEmpPrefixViaApi() throws Exception {
+        String jsonPayload = """
+                {
+                  "firstName": "Maintenance",
+                  "lastName": "Staff",
+                  "password": "Password@123",
+                  "role": "MAINTENANCE_STAFF",
+                  "contact": "+919876540004"
+                }
+                """;
+
+        mockMvc.perform(post("/api/users")
+                        .with(httpBasic("admin", "admin123"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonPayload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.userId").value(matchesPattern("^EMP-[0-9a-fA-F-]{36}$")))
+                .andExpect(jsonPath("$.role").value("MAINTENANCE_STAFF"))
+                .andExpect(jsonPath("$.contact").value("+919876540004"))
+                .andExpect(jsonPath("$.password").doesNotExist())
+                .andExpect(jsonPath("$.id").doesNotExist())
+                .andExpect(jsonPath("$.active").doesNotExist());
+    }
+
+    @Test
+    void testCreateUserIgnoresClientSuppliedUserIdViaApi() throws Exception {
+        String jsonPayload = """
+                {
+                  "userId": "CLIENT-SUPPLIED-12345",
+                  "firstName": "Client",
+                  "lastName": "Attempt",
+                  "password": "Password@123",
+                  "role": "PASSENGER",
+                  "contact": "+919876540005"
+                }
+                """;
+
+        mockMvc.perform(post("/api/users")
+                        .with(httpBasic("admin", "admin123"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonPayload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.userId").value(matchesPattern("^PASS-[0-9a-fA-F-]{36}$")))
+                .andExpect(jsonPath("$.userId").value(not("CLIENT-SUPPLIED-12345")));
+    }
+
+    @Test
+    void testCreateUserWithIsActiveFalsePreservedViaApi() throws Exception {
+        String jsonPayload = """
+                {
+                  "firstName": "Inactive",
+                  "lastName": "User",
+                  "password": "Password@123",
+                  "role": "PASSENGER",
+                  "contact": "+919876540006",
+                  "isActive": false
+                }
+                """;
+
+        mockMvc.perform(post("/api/users")
+                        .with(httpBasic("admin", "admin123"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonPayload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.userId").value(matchesPattern("^PASS-[0-9a-fA-F-]{36}$")))
+                .andExpect(jsonPath("$.isActive").value(false));
+    }
+
+    @Test
+    void testCreateUserWithDefaultIsActiveWhenOmittedViaApi() throws Exception {
+        String jsonPayload = """
+                {
+                  "firstName": "Default",
+                  "lastName": "Active",
+                  "password": "Password@123",
+                  "role": "PASSENGER",
+                  "contact": "+919876540007"
+                }
+                """;
+
+        mockMvc.perform(post("/api/users")
+                        .with(httpBasic("admin", "admin123"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonPayload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.userId").value(matchesPattern("^PASS-[0-9a-fA-F-]{36}$")))
+                .andExpect(jsonPath("$.isActive").value(true));
+    }
+
+    @Test
+    void testUpdateUserPreservesDatabaseValuesAndDoesNotRegenerateIdViaApi() throws Exception {
+        User initialUser = new User();
+        initialUser.setFirstName("Update");
+        initialUser.setLastName("Target");
+        initialUser.setPassword("Password@123");
+        initialUser.setRole(Role.TICKET_AGENT);
+        initialUser.setContact("+919876540008");
+        initialUser.setIsActive(false);
+        User created = userService.create(initialUser);
+        String originalId = created.getUserId();
+        assertNotNull(originalId);
+        assertTrue(originalId.startsWith("EMP-"));
+
+        String partialUpdatePayload = """
+                {
+                  "firstName": "UpdatedName"
+                }
+                """;
+
+        mockMvc.perform(put("/api/users/" + originalId)
+                        .with(httpBasic("admin", "admin123"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(partialUpdatePayload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(originalId))
+                .andExpect(jsonPath("$.firstName").value("UpdatedName"))
+                .andExpect(jsonPath("$.isActive").value(false))
+                .andExpect(jsonPath("$.role").value("TICKET_AGENT"))
+                .andExpect(jsonPath("$.id").doesNotExist())
+                .andExpect(jsonPath("$.active").doesNotExist());
+
+        User afterPartial = userService.getById(originalId);
+        assertNotNull(afterPartial);
+        assertEquals(originalId, afterPartial.getUserId());
+        assertFalse(afterPartial.getIsActive());
+
+        String statusUpdatePayload = """
+                {
+                  "isActive": true,
+                  "role": "ADMIN"
+                }
+                """;
+
+        mockMvc.perform(put("/api/users/" + originalId)
+                        .with(httpBasic("admin", "admin123"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(statusUpdatePayload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(originalId))
+                .andExpect(jsonPath("$.isActive").value(true))
+                .andExpect(jsonPath("$.role").value("ADMIN"))
+                .andExpect(jsonPath("$.id").doesNotExist())
+                .andExpect(jsonPath("$.active").doesNotExist());
+
+        User persisted = userService.getById(originalId);
+        assertNotNull(persisted);
+        assertEquals(originalId, persisted.getUserId());
+        assertTrue(persisted.getIsActive());
+        assertEquals(Role.ADMIN, persisted.getRole());
+    }
+
+    @Test
+    void testCreateUserWithLegacyPropertiesIgnored() throws Exception {
+        String jsonPayload = """
+                {
+                  "userId": "IGNORED-ID",
+                  "id": "string",
+                  "firstName": "Legacy",
+                  "lastName": "Test",
+                  "password": "Password@123",
+                  "role": "PASSENGER",
+                  "contact": "+919876540009",
+                  "isActive": false,
+                  "active": true
+                }
+                """;
+
+        mockMvc.perform(post("/api/users")
+                        .with(httpBasic("admin", "admin123"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonPayload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.userId").value(matchesPattern("^PASS-[0-9a-fA-F-]{36}$")))
+                .andExpect(jsonPath("$.isActive").value(false))
+                .andExpect(jsonPath("$.role").value("PASSENGER"))
+                .andExpect(jsonPath("$.id").doesNotExist())
+                .andExpect(jsonPath("$.active").doesNotExist());
+    }
+
+    @Test
+    void testOpenApiSchemaUserIdIsReadOnlyAndNotRequired() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.components.schemas.User.properties.userId.readOnly").value(true))
+                .andExpect(jsonPath("$.components.schemas.User.required", not(hasItem("userId"))))
+                .andExpect(jsonPath("$.components.schemas.User.properties.id").doesNotExist())
+                .andExpect(jsonPath("$.components.schemas.User.properties.active").doesNotExist());
     }
 }

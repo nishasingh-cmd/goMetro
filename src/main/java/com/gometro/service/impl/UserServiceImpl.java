@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -21,8 +22,17 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User create(User user) {
-        if (user.getId() != null && userRepository.existsById(user.getId())) {
-            throw new IllegalArgumentException("User with ID " + user.getId() + " already exists");
+        if (user.getRole() == null) {
+            throw new IllegalArgumentException("Role is required");
+        }
+        String prefix = switch (user.getRole()) {
+            case PASSENGER -> "PASS";
+            case ADMIN -> "ADMIN";
+            case TICKET_AGENT, MAINTENANCE_STAFF -> "EMP";
+        };
+        user.setUserId(prefix + "-" + UUID.randomUUID().toString());
+        if (user.getIsActive() == null) {
+            user.setIsActive(true);
         }
         return userRepository.save(user);
     }
@@ -35,28 +45,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public User getById(Long id) {
+    public User getById(String id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
     }
 
     @Override
     @Transactional
-    public User update(Long id, User userDetails) {
+    public User update(String id, User userDetails) {
         User existingUser = getById(id);
         if (userDetails.getFirstName() != null) existingUser.setFirstName(userDetails.getFirstName());
         if (userDetails.getLastName() != null) existingUser.setLastName(userDetails.getLastName());
-        if (userDetails.getEmail() != null) existingUser.setEmail(userDetails.getEmail());
         if (userDetails.getPassword() != null && !userDetails.getPassword().isBlank()) existingUser.setPassword(userDetails.getPassword());
-        if (userDetails.getPhoneNumber() != null) existingUser.setPhoneNumber(userDetails.getPhoneNumber());
+        if (userDetails.getContact() != null) existingUser.setContact(userDetails.getContact());
         if (userDetails.getRole() != null) existingUser.setRole(userDetails.getRole());
-        if (userDetails.getActive() != null) existingUser.setActive(userDetails.getActive());
+        if (userDetails.getIsActive() != null) existingUser.setIsActive(userDetails.getIsActive());
+        if (userDetails.getHireDate() != null) existingUser.setHireDate(userDetails.getHireDate());
+        if (userDetails.getStationId() != null) existingUser.setStationId(userDetails.getStationId());
         return userRepository.save(existingUser);
     }
 
     @Override
     @Transactional
-    public void delete(Long id) {
+    public void delete(String id) {
         User user = getById(id);
         userRepository.delete(user);
     }

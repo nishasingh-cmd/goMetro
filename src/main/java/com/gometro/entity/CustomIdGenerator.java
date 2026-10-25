@@ -7,8 +7,8 @@ public class CustomIdGenerator extends SequenceStyleGenerator {
 
     @Override
     public Object generate(SharedSessionContractImplementor session, Object object) {
-        if (object instanceof User user && user.getId() != null) {
-            return user.getId();
+        if (object instanceof User user && user.getUserId() != null) {
+            return user.getUserId();
         }
         return super.generate(session, object);
     }

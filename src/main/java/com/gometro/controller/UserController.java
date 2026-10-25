@@ -45,21 +45,21 @@ public class UserController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Retrieve a user by ID")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<User> getUserById(@PathVariable String id) {
         User user = userService.getById(id);
         return ResponseEntity.ok(user);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update a user")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
+    public ResponseEntity<User> updateUser(@PathVariable String id, @RequestBody User user) {
         User updatedUser = userService.update(id, user);
         return ResponseEntity.ok(updatedUser);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a user")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable String id) {
         userService.delete(id);
         return ResponseEntity.noContent().build();
     }
