@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -54,6 +55,13 @@ public class UserController {
     @Operation(summary = "Update a user")
     public ResponseEntity<User> updateUser(@PathVariable String id, @RequestBody User user) {
         User updatedUser = userService.update(id, user);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "Partially update a user")
+    public ResponseEntity<User> patchUser(@PathVariable String id, @RequestBody User user) {
+        User updatedUser = userService.patch(id, user);
         return ResponseEntity.ok(updatedUser);
     }
 

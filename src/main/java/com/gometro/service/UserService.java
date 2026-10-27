@@ -9,5 +9,6 @@ public interface UserService {
     List<User> getAll();
     User getById(String id);
     User update(String id, User userDetails);
+    User patch(String id, User userDetails);
     void delete(String id);
 }

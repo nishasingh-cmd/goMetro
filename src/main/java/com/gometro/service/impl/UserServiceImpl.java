@@ -67,6 +67,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    public User patch(String id, User userDetails) {
+        return update(id, userDetails);
+    }
+
+    @Override
+    @Transactional
     public void delete(String id) {
         User user = getById(id);
         userRepository.delete(user);

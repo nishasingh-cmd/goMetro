@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -370,5 +371,40 @@ class GoMetroApplicationTests {
                 .andExpect(jsonPath("$.components.schemas.User.required", not(hasItem("userId"))))
                 .andExpect(jsonPath("$.components.schemas.User.properties.id").doesNotExist())
                 .andExpect(jsonPath("$.components.schemas.User.properties.active").doesNotExist());
+    }
+
+    @Test
+    void testPatchUser() throws Exception {
+        User user = new User();
+        user.setFirstName("PatchFirst");
+        user.setLastName("PatchLast");
+        user.setPassword("Secret@123");
+        user.setRole(Role.PASSENGER);
+        user.setContact("+919999900001");
+        user.setIsActive(true);
+        User created = userService.create(user);
+        String userId = created.getUserId();
+
+        String patchPayload = """
+                {
+                  "contact": "+919999900002",
+                  "isActive": false
+                }
+                """;
+
+        mockMvc.perform(patch("/api/users/" + userId)
+                        .with(httpBasic("admin", "admin123"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(patchPayload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(userId))
+                .andExpect(jsonPath("$.firstName").value("PatchFirst"))
+                .andExpect(jsonPath("$.contact").value("+919999900002"))
+                .andExpect(jsonPath("$.isActive").value(false));
+
+        User updated = userService.getById(userId);
+        assertEquals("+919999900002", updated.getContact());
+        assertFalse(updated.getIsActive());
+        assertEquals("PatchFirst", updated.getFirstName());
     }
 }
