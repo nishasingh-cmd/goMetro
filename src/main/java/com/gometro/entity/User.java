@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "\"User\"")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class User {
 
     @Id
@@ -66,7 +66,7 @@ public class User {
     }
 
     public User(String userId, String firstName, String lastName, String password, Role role,
-                String contact, LocalDate registrationDate, Boolean isActive, LocalDate hireDate, String stationId) {
+            String contact, LocalDate registrationDate, Boolean isActive, LocalDate hireDate, String stationId) {
         this.userId = userId;
         this.firstName = firstName;
         this.lastName = lastName;
